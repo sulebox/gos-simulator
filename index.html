@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOSシミュレーター</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0ede7; /* A warm off-white/cream */
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield; /* Firefox */
+        }
+        .stat-input {
+            @apply mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-red-400 focus:border-red-400 sm:text-sm;
+            color: #1E40AF; /* Dark blue for input text */
+        }
+        .stat-label {
+            @apply block text-sm font-medium text-gray-700 mb-1;
+        }
+        .container-bg {
+            background-color: #ffffff;
+        }
+        .title-text {
+            color: #374151;
+        }
+        .gos-value-text {
+            color: #d97706;
+        }
+        .select-focus-ring {
+            @apply focus:ring-red-400 focus:border-red-400;
+        }
+        .reset-button {
+            /* Styles for the reset button - color changed */
+            @apply w-full sm:w-auto inline-flex justify-center items-center px-6 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="container mx-auto max-w-[845px] container-bg shadow-xl rounded-lg p-6 md:p-8">
+        <h1 class="text-2xl md:text-3xl font-bold text-left title-text mb-4">GOSシミュレーター</h1>
+
+        <div class="mb-8 text-left">
+            <button id="resetButton" class="reset-button">リセット</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 items-center">
+            <div>
+                <label for="calcType" class="stat-label">職業種別:</label>
+                <select id="calcType" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none select-focus-ring sm:text-sm">
+                    <option value="物理">物理</option>
+                    <option value="魔法">魔法</option>
+                </select>
+            </div>
+            <div class="text-center md:text-right mt-4 md:mt-0">
+                <span class="text-xl font-medium text-gray-700">あなたのGOSは:</span>
+                <span id="gosResult" class="text-3xl md:text-4xl font-bold gos-value-text ml-2">0</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+            <div>
+                <label for="hp" class="stat-label">HP:</label>
+                <input type="number" id="hp" class="stat-input" placeholder="x1">
+            </div>
+            <div>
+                <label for="mp" class="stat-label">MP:</label>
+                <input type="number" id="mp" class="stat-input" placeholder="x1">
+            </div>
+            <div>
+                <label for="attack" class="stat-label">攻撃:</label>
+                <input type="number" id="attack" class="stat-input" placeholder="x0.5（補正）">
+            </div>
+            <div>
+                <label for="defense" class="stat-label">防御:</label>
+                <input type="number" id="defense" class="stat-input" placeholder="x1">
+            </div>
+            <div>
+                <label for="magicAttack" class="stat-label">魔法攻撃:</label>
+                <input type="number" id="magicAttack" class="stat-input" placeholder="x0.2（補正）">
+            </div>
+            <div>
+                <label for="castingSpeed" class="stat-label">詠唱速度:</label>
+                <input type="number" id="castingSpeed" class="stat-input" placeholder="魔x0.9 / 物x0.5（補正）">
+            </div>
+            <div>
+                <label for="strength" class="stat-label">腕力:</label>
+                <input type="number" id="strength" class="stat-input" placeholder="×1">
+            </div>
+            <div>
+                <label for="vitality" class="stat-label">体力:</label>
+                <input type="number" id="vitality" class="stat-input" placeholder="x1">
+            </div>
+            <div>
+                <label for="speed" class="stat-label">速さ:</label>
+                <input type="number" id="speed" class="stat-input" placeholder="x1">
+            </div>
+            <div>
+                <label for="intelligence" class="stat-label">知力:</label>
+                <input type="number" id="intelligence" class="stat-input" placeholder="x1">
+            </div>
+            <div>
+                <label for="dexterity" class="stat-label">器用:</label>
+                <input type="number" id="dexterity" class="stat-input" placeholder="x1">
+            </div>
+            <div>
+                <label for="mind" class="stat-label">精神:</label>
+                <input type="number" id="mind" class="stat-input" placeholder="x1">
+            </div>
+            <div>
+                <label for="maxPhysicalCritMultiplier" class="stat-label">Max物クリ倍:</label>
+                <input type="number" id="maxPhysicalCritMultiplier" class="stat-input" placeholder="クリ率は0.33倍で計算">
+            </div>
+            <div>
+                <label for="maxMagicalCritMultiplier" class="stat-label">Max魔クリ倍:</label>
+                <input type="number" id="maxMagicalCritMultiplier" class="stat-input" placeholder="クリ率は0.33倍で計算">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM elements
+        const calcTypeSelect = document.getElementById('calcType');
+        const gosResultSpan = document.getElementById('gosResult');
+        const resetButton = document.getElementById('resetButton');
+
+        const statInputIds = [
+            'hp', 'mp', 'attack', 'defense', 'magicAttack', 'castingSpeed',
+            'strength', 'vitality', 'speed', 'intelligence', 'dexterity', 'mind',
+            'maxPhysicalCritMultiplier', 'maxMagicalCritMultiplier'
+        ];
+
+        const statInputs = {};
+        statInputIds.forEach(id => {
+            statInputs[id] = document.getElementById(id);
+        });
+
+        // Function to calculate GOS
+        function calculateGOS() {
+            const C18 = parseFloat(statInputs.hp.value) || 0;
+            const E18 = parseFloat(statInputs.mp.value) || 0;
+            const C19 = parseFloat(statInputs.attack.value) || 0;
+            const E19 = parseFloat(statInputs.defense.value) || 0;
+            const C20 = parseFloat(statInputs.magicAttack.value) || 0;
+            const E20 = parseFloat(statInputs.castingSpeed.value) || 0;
+            const C21 = parseFloat(statInputs.strength.value) || 0;
+            const E21 = parseFloat(statInputs.vitality.value) || 0;
+            const C22 = parseFloat(statInputs.speed.value) || 0;
+            const E22 = parseFloat(statInputs.intelligence.value) || 0;
+            const C23 = parseFloat(statInputs.dexterity.value) || 0;
+            const E23 = parseFloat(statInputs.mind.value) || 0;
+            const C24 = parseFloat(statInputs.maxPhysicalCritMultiplier.value) || 0;
+            const E24 = parseFloat(statInputs.maxMagicalCritMultiplier.value) || 0;
+
+            const selectedType = calcTypeSelect.value;
+            let gos = 0;
+
+            if (selectedType === "物理") {
+                gos = C18 + E18 +
+                      (C19 * 0.5) * ((((E20 - 50) / 50 - 1) * 0.5) + 1) * ((((C24 - 30) / 2 + 30) * 0.33 + 100) / 100) +
+                      E19 +
+                      (C20 * 0.2 + E22) * (((E24 - 30) / 2 * 0.33 + 100) / 100) +
+                      C21 + E21 + C22 + C23 + E23;
+            } else if (selectedType === "魔法") {
+                gos = C18 + E18 +
+                      (C19 * 0.5) * (((C24 - 30) / 2 * 0.33 + 100) / 100) +
+                      E19 +
+                      (C20 * 0.2 + E22) * ((((E20 - 50) / 50 - 1) * 0.9) + 1) * ((((E24 - 30) / 2 + 30) * 0.33 + 100) / 100) +
+                      C21 + E21 + C22 + C23 + E23;
+            }
+
+            gosResultSpan.textContent = Math.round(gos);
+        }
+
+        // Function to reset all fields
+        function resetFields() {
+            statInputIds.forEach(id => {
+                statInputs[id].value = ''; // Clear input fields
+            });
+            calcTypeSelect.value = '物理'; // Reset select to '物理'
+            calculateGOS(); // Recalculate GOS (which will be 0)
+        }
+
+        // Event listeners
+        calcTypeSelect.addEventListener('change', calculateGOS);
+        statInputIds.forEach(id => {
+            statInputs[id].addEventListener('input', calculateGOS);
+        });
+        resetButton.addEventListener('click', resetFields);
+
+        // Initial calculation on page load
+        calculateGOS();
+    </script>
+</body>
+</html>
